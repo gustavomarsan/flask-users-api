@@ -1,5 +1,7 @@
 from flask import Flask
 from routes.user_routes import users_bp
+from dotenv import load_dotenv
+load_dotenv()
 
 
 def create_app():
