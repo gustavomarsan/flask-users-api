@@ -1,21 +1,28 @@
 from db import get_connection
+from psycopg2.errors import UniqueViolation
 
 def create_user(name, email):
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        "INSERT INTO users (name, email) VALUES (%s, %s) RETURNING id, name, email;",
-        (name, email)
-    )
+    try:
+        cursor.execute(
+            "INSERT INTO users (name, email) VALUES (%s, %s) RETURNING id, name, email;",
+            (name, email)
+        )
 
-    new_user = cursor.fetchone()
-    conn.commit()
+        new_user = cursor.fetchone()
+        conn.commit()
 
-    cursor.close()
-    conn.close()
+        return new_user
 
-    return new_user
+    except UniqueViolation:
+        conn.rollback()
+        return "duplicate" 
+    
+    finally:
+        cursor.close()
+        conn.close()
 
 def get_all_users():
     conn = get_connection()
@@ -75,18 +82,24 @@ def update_user(user_id: int, name: str, email: str):
     conn = get_connection()
     cursor = conn.cursor()
 
-    cursor.execute(
-        "UPDATE users SET name = %s, email = %s WHERE id = %s RETURNING id, name, email;",
-        (name, email, user_id)
-    )
+    try:
+        cursor.execute(
+            "UPDATE users SET name = %s, email = %s WHERE id = %s RETURNING id, name, email;",
+            (name, email, user_id)
+        )
 
-    updated = cursor.fetchone()
-    conn.commit()
+        updated = cursor.fetchone()
+        conn.commit()
 
-    cursor.close()
-    conn.close()
+        if updated is None:
+            return None
 
-    if updated is None:
-        return None
+        return updated  
 
-    return updated
+    except UniqueViolation:
+        conn.rollback()
+        return "duplicate"
+    
+    finally:
+        cursor.close()
+        conn.close()
