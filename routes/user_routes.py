@@ -3,8 +3,8 @@ from services.user_services import (
     get_all_users,
     get_user_by_id,
     create_user,
-    update_user,
     delete_user,
+    update_user,
 )
 
 users_bp = Blueprint("users", __name__)
@@ -24,13 +24,13 @@ def route_get_user(user_id):
 
 
 @users_bp.route("/api/users", methods=["POST"])
-def route_create_user():
+def route_create_user():    
     data = request.get_json()
 
-    if not data or "name" not in data:
-        return jsonify({"error": "Name is required"}), 400
-
-    new_user = create_user(data["name"])
+    if not data or "name" not in data or "email" not in data:
+        return jsonify({"error": "Name and email are required"}), 400
+    
+    new_user = create_user(data["name"], data["email"])
     return jsonify(new_user), 201
 
 
@@ -38,13 +38,14 @@ def route_create_user():
 def route_update_user(user_id):
     data = request.get_json()
 
-    if not data or "name" not in data:
-        return jsonify({"error": "Name is required"}), 400
 
-    updated_user = update_user(user_id, data["name"])
+    if not data or "name" not in data or "email" not in data:
+        return jsonify({"error": "Name and email are required"}), 400
+
+    updated_user = update_user(user_id, data["name"], data["email"])
 
     if not updated_user:
-        return jsonify({"error": "User not found"}), 404
+        return jsonify({f"error": f"User with ID {user_id} not found"}), 404
 
     return jsonify(updated_user), 200
 
@@ -56,4 +57,4 @@ def route_delete_user(user_id):
     if not deleted:
         return jsonify({"error": "User not found"}), 404
 
-    return jsonify({"message": "User deleted successfully"}), 200
+    return jsonify({"message": f"User with ID {user_id} deleted successfully"}), 200

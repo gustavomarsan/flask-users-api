@@ -1,42 +1,92 @@
-"""
-Docstring for services.services
-Todo: Set the business logic here, separate from the route handling and data storage for better organization
-"""
+from db import get_connection
 
-from models.user import users, next_id
+def create_user(name, email):
+    conn = get_connection()
+    cursor = conn.cursor()
 
-def get_all_users():
-    return users
+    cursor.execute(
+        "INSERT INTO users (name, email) VALUES (%s, %s) RETURNING id, name, email;",
+        (name, email)
+    )
 
+    new_user = cursor.fetchone()
+    conn.commit()
 
-def get_user_by_id(user_id):
-    return next((u for u in users if u["id"] == user_id), None)
+    cursor.close()
+    conn.close()
 
-
-def create_user(name):
-    global next_id
-    new_user = {
-        "id": next_id,
-        "name": name
-    }
-    users.append(new_user)
-    next_id += 1
     return new_user
 
+def get_all_users():
+    conn = get_connection()
+    cursor = conn.cursor()
 
-def update_user(user_id, name):
-    user = get_user_by_id(user_id)
-    if not user:
+    cursor.execute("SELECT id, name, email FROM users ORDER BY id;")
+    rows = cursor.fetchall()
+
+    cursor.close()
+    conn.close()
+
+    return [
+        {"id": r[0], "name": r[1], "email": r[2]}
+        for r in rows
+    ]
+
+def get_user_by_id(user_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "SELECT id, name, email FROM users WHERE id = %s;",
+        (user_id,)
+    )
+
+    row = cursor.fetchone()
+
+    cursor.close()
+    conn.close()
+
+    if row is None:
         return None
-    user["name"] = name
-    return user
 
+    return {"id": row[0], "name": row[1], "email": row[2]}
 
-def delete_user(user_id):
-    global users
-    user = get_user_by_id(user_id)
-    if not user:
-        return False
-    users = [u for u in users if u["id"] != user_id]
-    return True
+def delete_user(user_id: int):
+    conn = get_connection()
+    cursor = conn.cursor()
 
+    cursor.execute(
+        "DELETE FROM users WHERE id = %s RETURNING id;",
+        (user_id,)
+    )
+
+    deleted = cursor.fetchone()
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    if deleted is None:
+        return None
+
+    return user_id
+
+def update_user(user_id: int, name: str, email: str):
+    conn = get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "UPDATE users SET name = %s, email = %s WHERE id = %s RETURNING id, name, email;",
+        (name, email, user_id)
+    )
+
+    updated = cursor.fetchone()
+    conn.commit()
+
+    cursor.close()
+    conn.close()
+
+    if updated is None:
+        return None
+
+    return updated
