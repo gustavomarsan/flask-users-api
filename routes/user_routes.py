@@ -12,6 +12,9 @@ users_bp = Blueprint("users", __name__)
 
 
 def is_valid_email(email: str) -> bool:
+    if not isinstance(email, str):
+        return False
+    
     try:
         validate_email(email, check_deliverability=False)
         return True
@@ -54,7 +57,14 @@ def route_update_user(user_id):
     data = request.get_json()
 
 
-    if not data or "name" not in data or "email" not in data:
+    name = data.get("name")
+    email = data.get("email")
+
+    if (
+        not isinstance(name, str) or not name.strip() or
+        not isinstance(email, str) or not email.strip() or
+        not is_valid_email(email)
+    ):
         return jsonify({"error": "Name and email are required"}), 400
 
     updated_user = update_user(user_id, data["name"], data["email"])
