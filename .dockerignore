@@ -1,0 +1,39 @@
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+env/
+.venv/
+
+# Environment variables (never include secrets)
+.env
+
+# Git
+.git
+.gitignore
+
+# Tests
+tests/
+
+# MacOS files
+.DS_Store
+
+# Pytest cache
+.pytest_cache/
+
+# VSCode
+.vscode/
+
+# Logs
+*.log
+
+# Docker
+docker-compose.yml
+
+# Ignore the requirements directory if it contains generated files or is not needed in the Docker contextßß
+requirements/dev.txt
+requirements/test.txt

@@ -1,0 +1,7 @@
+black==21.7b0
+pylint==2.15.3
+isort==5.10.1
+radon==5.1.0
+pipenv==2023.10.3
+virtualenv==20.24.5
+coverage==6.5.0
